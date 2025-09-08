@@ -24,3 +24,13 @@ body {
   color: var(--foreground);
   font-family: Arial, Helvetica, sans-serif;
 }
+
+html,body { margin:0; padding:0; background:#f8fafc; font-family:system-ui, sans-serif; color:#0f172a; }
+button { padding:8px 12px; border:1px solid #cbd5e1; border-radius:6px; background:#fff; cursor:pointer; }
+button:hover { background:#f1f5f9; }
+
+h1 {
+  font-size: 2rem;
+  font-weight: bold;
+  margin-bottom: 1rem;
+}
