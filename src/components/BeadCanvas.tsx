@@ -8,8 +8,8 @@ type Props = { widthPx?: number; heightPx?: number };
 export default function BeadCanvas({ widthPx = 500, heightPx = 500 }: Props) {
   const {
     beads, rings, activeRing, errorMessage, centerBead,
-    addRing, removeRing, setRingRadius, setRingDiv, setActiveRing,
-    addBead, moveBeadSafe, removeBead, setCenterBead,
+    addRing, removeRing, setRingRadius, setRingDiv,
+    moveBeadSafe, removeBead, setCenterBead,
   } = useDesign();
   const { previewMode, setPreviewMode } = useDesign();
 
@@ -39,7 +39,7 @@ export default function BeadCanvas({ widthPx = 500, heightPx = 500 }: Props) {
     const xmm = px2mm(dxPx);
     const ymm = px2mm(dyPx);
 
-    let rmm = Math.hypot(xmm, ymm);
+    const rmm = Math.hypot(xmm, ymm);
     let thetadeg = (deg(Math.atan2(ymm, xmm)) + 360) % 360;
 
     const state = useDesign.getState();
@@ -109,7 +109,9 @@ export default function BeadCanvas({ widthPx = 500, heightPx = 500 }: Props) {
         <strong>中心ビーズ:</strong>
         <select
           value={centerBead ?? ''}
-          onChange={(e) => setCenterBead((e.target.value || null) as any)}
+          onChange={(e: React.ChangeEvent<HTMLSelectElement>) =>
+            setCenterBead(e.target.value ? (e.target.value as BeadKey) : null)
+          }
           className="border border-gray-300 rounded px-2 py-1 focus:outline-none focus:ring-2 focus:ring-blue-400"
         >
           <option value="">（なし）</option>

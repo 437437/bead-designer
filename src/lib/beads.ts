@@ -11,13 +11,6 @@ export type BeadKey =
   | 'diamond5'
   | 'pearl5';
 
-type BeadSpec = {
-  len: number;   // 長辺(竹は長さ、丸/パール/ダイヤは見た目用基準)
-  dia: number;   // 短辺(直径)
-  label: string;
-  shape: 'rect' | 'circle' | 'diamond';
-};
-
 /** 丸: len=dia、竹: len=長さ(長辺), dia=直径(短辺) [mm] */
 export const BEADS: Record<BeadKey, { len: number; dia: number; label: string; shape: 'circle'|'rect'|'diamond'|'tube' }> = {
   marusho: { len: 2.1, dia: 2.1, label: '丸小 (φ2.1)', shape: 'rect' },
