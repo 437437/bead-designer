@@ -264,7 +264,7 @@ function CanvasSVG(props: {
       {(() => {
         const rg = rings[activeRing];
         if (!rg || rg.div <= 0) return null;
-        const lines: any[] = [];
+        const lines: React.ReactNode[] = [];
         for (let k = 0; k < rg.div; k++) {
           const angle = (360 / rg.div) * k;
           const x = centerX + PX_PER_MM * (rg.radius * Math.cos((angle*Math.PI)/180));
