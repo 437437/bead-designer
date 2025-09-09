@@ -67,17 +67,6 @@ function snapTheta(theta: number, div?: number) {
   return normDeg(k * step);
 }
 
-/* ========= 幾何ヘルパー ========= */
-// 接線方向（円周方向）の必要幅 [mm]（最小半径の近似計算にのみ使用）
-function tangentialSpan(type: BeadKey): number {
-  const spec = BEADS[type];
-  switch (spec.shape) {
-    case 'circle':  return spec.dia; // 円は直径
-    case 'diamond': return spec.dia; // 菱形の接線方向フラット幅はdia
-    default:        return spec.len; // 矩形/竹は長辺が接線方向
-  }
-}
-
 // 半径方向半幅（中心ビーズ干渉チェック用）
 function radialHalfSpan(type: BeadKey): number {
   return BEADS[type].dia / 2;
@@ -280,53 +269,6 @@ function exactMinAllowedRadiusForRing(
   return hi;
 }
 
-/* ========= 近似の“最小半径” (保険)  ========= */
-/* NOTE: 半径の正規化は exactMin を使用するが、手動 setRingRadius 入力の
-   初期クランプや div 変更時の保険としても使う */
-function minAllowedRadiusForRing(
-  ringIndex: number,
-  beads: Bead[],
-  centerType: BeadKey | null,
-  div?: number
-): number {
-  const onRing = beads.filter(b => b.ring === ringIndex);
-  let rMin = 0;
-
-  if (onRing.length > 1) {
-    const sorted = [...onRing].sort((a, b) => a.theta - b.theta);
-    for (let k = 0; k < sorted.length; k++) {
-      const A = sorted[k];
-      const B = sorted[(k + 1) % sorted.length];
-      const deltaDeg = (B.theta - A.theta + 360) % 360 || 360;
-      const need = (tangentialSpan(A.type) / 2) + (tangentialSpan(B.type) / 2) + CLEARANCE_MM;
-      const dRad = (Math.PI / 180) * deltaDeg;
-      const s = Math.sin(dRad / 2);
-      if (s > 0) rMin = Math.max(rMin, need / (2 * s));
-    }
-  }
-
-  if (div && div > 0 && onRing.length > 0) {
-    const step = 360 / div;
-    if (div > 1) {
-      const s = Math.sin((Math.PI / 180) * step / 2);
-      for (const b of onRing) rMin = Math.max(rMin, (tangentialSpan(b.type) + CLEARANCE_MM) / (2 * s));
-      for (let i=0;i<onRing.length;i++) {
-        for (let j=i+1;j<onRing.length;j++) {
-          const need = (tangentialSpan(onRing[i].type)/2) + (tangentialSpan(onRing[j].type)/2) + CLEARANCE_MM;
-          rMin = Math.max(rMin, need / (2 * s));
-        }
-      }
-    }
-  }
-
-  if (centerType) {
-    const cR = centerCircumRadius(centerType);
-    for (const b of onRing) rMin = Math.max(rMin, cR + CLEARANCE_MM + radialHalfSpan(b.type));
-  }
-
-  return rMin;
-}
-
 /* ========= Zustand ========= */
 export const useDesign = create<State>((set, get) => {
   let initial: Partial<State> | null = null;
@@ -472,7 +414,7 @@ export const useDesign = create<State>((set, get) => {
 
     updateBead: (id, patch) => set((s) => {
       const before = s.beads.find(b => b.id === id);
-      let ringIdx = before?.ring;
+      const ringIdx = before?.ring;
       const beads = s.beads.map(b => {
         if (b.id !== id) return b;
         const ring = (typeof b.ring === 'number') ? s.rings[b.ring] : undefined;
@@ -665,7 +607,7 @@ export function computeDesignDiameterMM(beads: Bead[], centerType?: BeadKey | nu
   let maxR = 0;
   for (const b of beads) {
     const spec = BEADS[b.type];
-    let rShape = (spec.shape === 'diamond') ? (spec.len / 2) : Math.hypot(spec.len/2, spec.dia/2);
+    const rShape = (spec.shape === 'diamond') ? (spec.len / 2) : Math.hypot(spec.len/2, spec.dia/2);
     maxR = Math.max(maxR, b.r + rShape);
   }
   if (centerType) maxR = Math.max(maxR, centerCircumRadius(centerType));
